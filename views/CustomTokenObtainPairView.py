@@ -88,6 +88,6 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
         except Exception as e:
             # Log the error
-            logger.error(f'Error obtaining tokens: {str(e)}')
+            logger.error(f'Error obtaining tokens: {str(e)}', exc_info=True)
             # Return an error response if an exception occurs
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
