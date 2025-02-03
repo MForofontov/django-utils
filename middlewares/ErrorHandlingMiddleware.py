@@ -1,36 +1,51 @@
 import logging
-from django.utils.deprecation import MiddlewareMixin
+from django.http import JsonResponse
 
 logger = logging.getLogger(__name__)
 
-class ResponseLoggingMiddleware(MiddlewareMixin):
+class ErrorHandlingMiddleware:
     """
-    Middleware to log the data being sent to the user in the response.
+    Middleware to handle exceptions and return a JSON response with an error message.
     """
-    def process_response(self, request, response):
+    def __init__(self, get_response):
         """
-        Process the response and log the data being sent to the user.
+        Initialize the middleware with the given get_response callable.
+        
+        Parameters
+        ----------
+        get_response : callable
+            The next middleware or view in the chain.
+        """
+        self.get_response = get_response
 
+    def __call__(self, request):
+        """
+        Handle the incoming request and process exceptions if they occur.
+        
         Parameters
         ----------
         request : HttpRequest
-            The HTTP request object.
-        response : HttpResponse
-            The HTTP response object.
-
+            The incoming HTTP request.
+        
         Returns
         -------
         HttpResponse
-            The HTTP response object.
+            The HTTP response from the next middleware or view.
         """
-        # Log the response data
         try:
-            # Decode the response content and log it
-            response_content = response.content.decode('utf-8')
-            logger.info(f"Response data: {response_content}")
-        except Exception as e:
-            # Log any errors that occur during logging
-            logger.error(f"Error logging response data: {e}")
-
-        # Return the response
+            # Get the response from the next middleware or view
+            response = self.get_response(request)
+        except Exception as exception:
+            # Log the exception with traceback
+            logger.error(f"Exception occurred: {exception}", exc_info=True)
+            
+            # Prepare the response data
+            response_data = {
+                "error": "An unexpected error occurred.",
+                "details": str(exception)
+            }
+            
+            # Return the JSON response with status code 500
+            return JsonResponse(response_data, status=500)
+        
         return response
