@@ -1,29 +1,39 @@
 import logging
-from django.utils.deprecation import MiddlewareMixin
 
-logger = logging.getLogger("your_logger_name")
+logger = logging.getLogger(__name__)
 
-class ResponseLoggingMiddleware(MiddlewareMixin):
+class ResponseLoggingMiddleware:
     """
     Middleware to log the data being sent to the user in the response.
     """
-    def process_response(self, request, response):
+    def __init__(self, get_response):
         """
-        Process the response and log the data being sent to the user.
+        Initialize the middleware with the given get_response callable.
+        
+        Parameters
+        ----------
+        get_response : callable
+            The next middleware or view in the chain.
+        """
+        self.get_response = get_response
 
+    def __call__(self, request):
+        """
+        Handle the incoming request and get the response.
+        
         Parameters
         ----------
         request : HttpRequest
-            The HTTP request object.
-        response : HttpResponse
-            The HTTP response object.
-
+            The incoming HTTP request.
+        
         Returns
         -------
         HttpResponse
-            The HTTP response object.
+            The HTTP response from the next middleware or view.
         """
-        # Log the response data
+        # Get the response from the next middleware or view
+        response = self.get_response(request)
+        
         try:
             # Decode the response content and log it
             response_content = response.content.decode('utf-8')
@@ -31,6 +41,6 @@ class ResponseLoggingMiddleware(MiddlewareMixin):
         except Exception as e:
             # Log any errors that occur during logging
             logger.error(f"Error logging response data: {e}")
-
+        
         # Return the response
         return response
