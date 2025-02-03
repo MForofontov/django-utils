@@ -34,29 +34,21 @@ class ResponseLoggingMiddleware:
         # Get the response from the next middleware or view
         response = self.get_response(request)
         
-        # Process the response
-        self.process_response(request, response)
+        # Log the response data
+        self.log_response(response)
         
         # Return the response
         return response
 
-    def process_response(self, request, response):
+    def log_response(self, response):
         """
-        Process the response and log the data being sent to the user.
+        Log the response data.
         
         Parameters
         ----------
-        request : HttpRequest
-            The incoming HTTP request.
         response : HttpResponse
-            The HTTP response object.
-        
-        Returns
-        -------
-        HttpResponse
-            The HTTP response object.
+            The HTTP response to be logged.
         """
-        # Log the response data
         try:
             # Decode the response content and log it
             response_content = response.content.decode('utf-8')
@@ -64,6 +56,3 @@ class ResponseLoggingMiddleware:
         except Exception as e:
             # Log any errors that occur during logging
             logger.error(f"Error logging response data: {e}")
-
-        # Return the response
-        return response

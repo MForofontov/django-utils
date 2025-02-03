@@ -1,6 +1,5 @@
 import gzip
 from io import BytesIO
-from django.http import HttpResponse
 
 class ResponseCompressionMiddleware:
     """
@@ -38,16 +37,14 @@ class ResponseCompressionMiddleware:
         response = self.get_response(request)
         
         # Process the response
-        return self.process_response(request, response)
+        return self.compress_response(response)
 
-    def process_response(self, request, response):
+    def compress_response(self, response):
         """
         Compress the response content if the content type is 'text/html'.
         
         Parameters
         ----------
-        request : HttpRequest
-            The incoming HTTP request.
         response : HttpResponse
             The HTTP response to be processed.
         
@@ -67,4 +64,5 @@ class ResponseCompressionMiddleware:
             response['Content-Encoding'] = 'gzip'
             # Update the 'Content-Length' header with the length of the compressed content
             response['Content-Length'] = str(len(response.content))
+
         return response
