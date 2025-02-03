@@ -36,24 +36,7 @@ class ResponseCompressionMiddleware:
         # Get the response from the next middleware or view
         response = self.get_response(request)
         
-        # Process the response
-        return self.compress_response(response)
-
-    def compress_response(self, response):
-        """
-        Compress the response content if the content type is 'text/html'.
-        
-        Parameters
-        ----------
-        response : HttpResponse
-            The HTTP response to be processed.
-        
-        Returns
-        -------
-        HttpResponse
-            The processed HTTP response with compressed content if applicable.
-        """
-        # Check if the response content type is 'text/html'
+       # Check if the response content type is 'text/html'
         if response.get('Content-Type') == 'text/html' and 'gzip' not in response.get('Content-Encoding', ''):
             # Compress the response content using gzip
             buffer = BytesIO()
