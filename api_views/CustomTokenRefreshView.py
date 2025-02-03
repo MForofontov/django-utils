@@ -66,13 +66,14 @@ class CustomTokenRefreshView(TokenRefreshView):
             secure=IS_PRODUCTION,
             samesite='Strict' if IS_PRODUCTION else 'Lax'
         )
-        response.set_cookie(
-            REFRESH_TOKEN_COOKIE_NAME,
-            tokens['refresh'],
-            max_age=REFRESH_TOKEN_MAX_AGE,
-            httponly=True,
-            secure=IS_PRODUCTION,
-            samesite='Strict' if IS_PRODUCTION else 'Lax'
-        )
+        if tokens.get('refresh'):
+            response.set_cookie(
+                REFRESH_TOKEN_COOKIE_NAME,
+                tokens['refresh'],
+                max_age=REFRESH_TOKEN_MAX_AGE,
+                httponly=True,
+                secure=IS_PRODUCTION,
+                samesite='Strict' if IS_PRODUCTION else 'Lax'
+            )
 
         return response
