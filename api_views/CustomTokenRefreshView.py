@@ -1,5 +1,5 @@
 import logging
-from rest_framework import status
+from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.request import Request
@@ -25,6 +25,7 @@ class CustomTokenRefreshView(TokenRefreshView):
     This view extends the TokenRefreshView from the djangorestframework-simplejwt package.
     """
     serializer_class = CustomTokenRefreshSerializer
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """
@@ -45,11 +46,8 @@ class CustomTokenRefreshView(TokenRefreshView):
             A JSON response with the refreshed JWT tokens or an error message.
         """
         serializer = self.get_serializer(data=request.data)
-        try:
-            serializer.is_valid(raise_exception=True)
-        except Exception as e:
-            logger.error(f"Token refresh failed: {e}")
-            return Response({"error": "Invalid refresh token"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer.is_valid(raise_exception=True)
 
         # Get the validated data (tokens)
         tokens = serializer.validated_data
