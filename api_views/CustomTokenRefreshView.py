@@ -3,8 +3,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework.request import Request
-from rest_framework.serializers import Serializer
-from rest_framework_simplejwt.exceptions import InvalidToken
+from serializers.CustomTokenRefreshSerializer import CustomTokenRefreshSerializer
 from typing import Any
 import os
 
@@ -15,16 +14,17 @@ logger = logging.getLogger(__name__)
 ACCESS_TOKEN_COOKIE_NAME: str = 'accessToken'
 REFRESH_TOKEN_COOKIE_NAME: str = 'refreshToken'
 ACCESS_TOKEN_MAX_AGE: int = 3600  # 1 hour
+REFRESH_TOKEN_MAX_AGE: int = 3600 * 24  # 1 day
 
 # Determine if the environment is production
 IS_PRODUCTION: bool = os.getenv('DJANGO_ENV') == 'production'
 
-# Custom view to refresh JWT tokens using a refresh token stored in cookies
 class CustomTokenRefreshView(TokenRefreshView):
     """
-    Custom view to handle JWT token refresh using a refresh token stored in cookies.
+    Custom view to handle refreshing JWT tokens and storing them in cookies.
     This view extends the TokenRefreshView from the djangorestframework-simplejwt package.
     """
+    serializer_class = CustomTokenRefreshSerializer
 
     def post(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """
@@ -42,48 +42,38 @@ class CustomTokenRefreshView(TokenRefreshView):
         Returns
         -------
         Response
-            The HTTP response object containing the new access token in cookies.
+            A JSON response with the refreshed JWT tokens or an error message.
         """
-        # Retrieve the refresh token from cookies
-        refresh_token: str = request.COOKIES.get(REFRESH_TOKEN_COOKIE_NAME)
-        if not refresh_token:
-            # Log the missing refresh token
-            logger.warning('Refresh token missing in cookies', exc_info=True) # Add info related to user
-            # Return an error response if the refresh token is missing
-            return Response({'detail': 'Refresh token missing'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Initialize the serializer with the refresh token
-        serializer: Serializer = self.get_serializer(data={'refresh': refresh_token})
+        serializer = self.get_serializer(data=request.data)
         try:
-            # Validate the serializer data
             serializer.is_valid(raise_exception=True)
-        except InvalidToken as e:
-            # Log the invalid token error
-            logger.error(f'Invalid token: {str(e)}', exc_info=True) # Add info related to user
-            # Return an error response if validation fails
-            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"Token refresh failed: {e}")
+            return Response({"error": "Invalid refresh token"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Create a response with the validated data
-        response: Response = Response(serializer.validated_data)
-        # Retrieve the new access token from the validated data
-        access: str = serializer.validated_data.get('access')
+        # Get the validated data (tokens)
+        tokens = serializer.validated_data
 
-        # Set the new access token in cookies
+        # Create the response object
+        response = Response(tokens, status=status.HTTP_200_OK)
+
+        # Set the cookies for access and refresh tokens
         response.set_cookie(
-            ACCESS_TOKEN_COOKIE_NAME, 
-            access, 
-            httponly=True, 
-            secure=IS_PRODUCTION,  # Set secure based on environment
-            samesite='None',
-            max_age=ACCESS_TOKEN_MAX_AGE,  # 1 hour
+            ACCESS_TOKEN_COOKIE_NAME,
+            tokens['access'],
+            max_age=ACCESS_TOKEN_MAX_AGE,
+            httponly=True,
+            secure=IS_PRODUCTION,
+            samesite='Strict' if IS_PRODUCTION else 'Lax'
         )
+        if tokens.get('refresh'):
+            response.set_cookie(
+                REFRESH_TOKEN_COOKIE_NAME,
+                tokens['refresh'],
+                max_age=REFRESH_TOKEN_MAX_AGE,
+                httponly=True,
+                secure=IS_PRODUCTION,
+                samesite='Strict' if IS_PRODUCTION else 'Lax'
+            )
 
-        # Remove the refresh and access tokens from the response data
-        response.data.pop('refresh', None)
-        response.data.pop('access', None)
-
-        # Log the successful token refresh
-        logger.info('Access token refreshed successfully')
-
-        # Return the response
         return response

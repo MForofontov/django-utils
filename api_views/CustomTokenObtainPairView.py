@@ -19,13 +19,11 @@ REFRESH_TOKEN_MAX_AGE: int = 3600 * 24  # 1 day
 # Determine if the environment is production
 IS_PRODUCTION: bool = os.getenv('DJANGO_ENV') == 'production'
 
-# Custom view to obtain JWT tokens (access and refresh) and store them in cookies
 class CustomTokenObtainPairView(TokenObtainPairView):
     """
     Custom view to handle obtaining JWT tokens (access and refresh) and storing them in cookies.
     This view extends the TokenObtainPairView from the djangorestframework-simplejwt package.
     """
-    # Specify the custom serializer class to use
     serializer_class = CustomTokenObtainPairSerializer
 
     def post(self, request: Request, *args: Any, **kwargs: Any) -> Response:
@@ -44,50 +42,37 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         Returns
         -------
         Response
-            The HTTP response object containing the new access and refresh tokens in cookies.
+            A JSON response with the JWT tokens or an error message.
         """
+        serializer = self.get_serializer(data=request.data)
         try:
-            # Initialize the serializer with the request data
-            serializer: CustomTokenObtainPairSerializer = self.get_serializer(data=request.data)
-            # Validate the serializer data
             serializer.is_valid(raise_exception=True)
-            # Create a response with the validated data
-            response: Response = Response(serializer.validated_data)
-
-            # Retrieve the refresh and access tokens from the validated data
-            refresh: str = serializer.validated_data['refresh']
-            access: str = serializer.validated_data['access']
-
-            # Set the access token in cookies
-            response.set_cookie(
-                ACCESS_TOKEN_COOKIE_NAME, 
-                access, 
-                httponly=True, 
-                secure=IS_PRODUCTION,  # Set secure based on environment
-                samesite='None',
-                max_age=ACCESS_TOKEN_MAX_AGE,
-            )
-            # Set the refresh token in cookies
-            response.set_cookie(
-                REFRESH_TOKEN_COOKIE_NAME, 
-                refresh, 
-                httponly=True, 
-                secure=IS_PRODUCTION,  # Set secure based on environment
-                samesite='None',
-                max_age=REFRESH_TOKEN_MAX_AGE,
-            )
-
-            # Remove the refresh and access tokens from the response data
-            response.data.pop('refresh')
-            response.data.pop('access')
-
-            # Log the successful token obtainment
-            logger.info('Access and refresh tokens obtained successfully')
-
-            return response
-
         except Exception as e:
-            # Log the error
-            logger.error(f'Error obtaining tokens: {str(e)}', exc_info=True)
-            # Return an error response if an exception occurs
-            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            logger.error(f"Token obtain failed: {e}")
+            return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Get the validated data (tokens)
+        tokens = serializer.validated_data
+
+        # Create the response object
+        response = Response(tokens, status=status.HTTP_200_OK)
+
+        # Set the cookies for access and refresh tokens
+        response.set_cookie(
+            ACCESS_TOKEN_COOKIE_NAME,
+            tokens['access'],
+            max_age=ACCESS_TOKEN_MAX_AGE,
+            httponly=True,
+            secure=IS_PRODUCTION,
+            samesite='Strict' if IS_PRODUCTION else 'Lax'
+        )
+        response.set_cookie(
+            REFRESH_TOKEN_COOKIE_NAME,
+            tokens['refresh'],
+            max_age=REFRESH_TOKEN_MAX_AGE,
+            httponly=True,
+            secure=IS_PRODUCTION,
+            samesite='Strict' if IS_PRODUCTION else 'Lax'
+        )
+
+        return response
