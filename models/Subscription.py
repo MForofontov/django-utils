@@ -1,10 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class Subscription(models.Model):
     """
     Model representing a subscription for a user.
-    
+
     Attributes
     ----------
     user : ForeignKey
@@ -16,6 +17,7 @@ class Subscription(models.Model):
     is_active : BooleanField
         Indicates whether the subscription is currently active.
     """
+
     user: models.ForeignKey = models.ForeignKey(User, on_delete=models.CASCADE)
     start_date: models.DateTimeField = models.DateTimeField(auto_now_add=True)
     end_date: models.DateTimeField = models.DateTimeField()
@@ -24,7 +26,7 @@ class Subscription(models.Model):
     def __str__(self) -> str:
         """
         Return a string representation of the subscription.
-        
+
         Returns
         -------
         str

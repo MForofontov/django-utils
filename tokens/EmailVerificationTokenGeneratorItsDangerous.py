@@ -1,6 +1,7 @@
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from django.conf import settings
 
+
 class EmailVerificationTokenGeneratorItsDangerous:
     def __init__(self):
         self.secret_key = settings.SECRET_KEY
@@ -40,14 +41,17 @@ class EmailVerificationTokenGeneratorItsDangerous:
             The user_id if the token is valid and not expired, None otherwise.
         """
         try:
-            user_id = self.serializer.loads(token, salt=self.salt, max_age=max_age)
+            user_id = self.serializer.loads(
+                token, salt=self.salt, max_age=max_age
+            )
             return user_id
         except SignatureExpired:
             # Token is valid but expired
-            return 'expired'
+            return "expired"
         except BadSignature:
             # Token is invalid
-            return 'invalid'
+            return "invalid"
+
 
 # Create an instance of the EmailVerificationTokenGeneratorItsDangerous
 email_verification_token = EmailVerificationTokenGeneratorItsDangerous()

@@ -3,6 +3,7 @@ import logging
 # Initialize the logger for this module
 logger = logging.getLogger(__name__)
 
+
 class RequestBodyLoggingMiddleware:
     """
     Middleware to log the request body for POST and PUT requests.
@@ -37,9 +38,9 @@ class RequestBodyLoggingMiddleware:
             The HTTP response from the next middleware or view.
         """
         # Check if the request method is POST or PUT
-        if request.method in ['POST', 'PUT']:
+        if request.method in ["POST", "PUT"]:
             # Log the request body
-            logger.info(f'Request body: {request.body}')
-        
+            logger.info(f"Request body: {request.body}")
+
         # Call the next middleware or view
         return self.get_response(request)

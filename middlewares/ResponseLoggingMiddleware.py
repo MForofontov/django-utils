@@ -2,14 +2,16 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class ResponseLoggingMiddleware:
     """
     Middleware to log the data being sent to the user in the response.
     """
+
     def __init__(self, get_response):
         """
         Initialize the middleware with the given get_response callable.
-        
+
         Parameters
         ----------
         get_response : callable
@@ -20,12 +22,12 @@ class ResponseLoggingMiddleware:
     def __call__(self, request):
         """
         Handle the incoming request and get the response.
-        
+
         Parameters
         ----------
         request : HttpRequest
             The incoming HTTP request.
-        
+
         Returns
         -------
         HttpResponse
@@ -33,14 +35,14 @@ class ResponseLoggingMiddleware:
         """
         # Get the response from the next middleware or view
         response = self.get_response(request)
-        
+
         try:
             # Decode the response content and log it
-            response_content = response.content.decode('utf-8')
+            response_content = response.content.decode("utf-8")
             logger.info(f"Response data: {response_content}")
         except Exception as e:
             # Log any errors that occur during logging
             logger.error(f"Error logging response data: {e}")
-        
+
         # Return the response
         return response

@@ -2,6 +2,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from typing import Type, Any
 
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
     Custom serializer to handle obtaining JWT tokens (access and refresh).
@@ -9,7 +10,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
 
     @classmethod
-    def get_token(cls: Type[TokenObtainPairSerializer], user: Any) -> RefreshToken:
+    def get_token(
+        cls: Type[TokenObtainPairSerializer], user: Any
+    ) -> RefreshToken:
         """
         Generate a refresh token for the given user.
 
