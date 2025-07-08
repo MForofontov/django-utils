@@ -1,0 +1,23 @@
+# Bytecode cache
+__pycache__/
+*.py[cod]
+
+# Package metadata
+*.egg-info/
+
+# Local environment variables
+.env
+
+# Virtual environment directories
+env/
+venv/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Editor settings
+.vscode/
+.idea/
+*.swp
+*~
