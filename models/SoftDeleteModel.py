@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from typing import Optional
 
+
 class SoftDeleteQuerySet(models.QuerySet):
     """
     Custom QuerySet for handling soft-deleted records.
@@ -10,7 +11,7 @@ class SoftDeleteQuerySet(models.QuerySet):
     def deleted(self) -> models.QuerySet:
         """
         Return only the soft-deleted records.
-        
+
         Returns
         -------
         QuerySet
@@ -21,13 +22,14 @@ class SoftDeleteQuerySet(models.QuerySet):
     def restore_all(self) -> int:
         """
         Restore all soft-deleted records.
-        
+
         Returns
         -------
         int
             The number of records restored.
         """
         return self.update(is_deleted=False, deleted_at=None)
+
 
 class SoftDeleteManager(models.Manager):
     """
@@ -37,18 +39,21 @@ class SoftDeleteManager(models.Manager):
     def get_queryset(self) -> SoftDeleteQuerySet:
         """
         Return only non-deleted records by default.
-        
+
         Returns
         -------
         SoftDeleteQuerySet
             A queryset containing only the non-deleted records.
         """
-        return SoftDeleteQuerySet(self.model, using=self._db).filter(is_deleted=False)
+        return SoftDeleteQuerySet(self.model, using=self._db).filter(
+            is_deleted=False
+        )
+
 
 class SoftDeleteModel(models.Model):
     """
     Abstract base model for implementing soft delete functionality.
-    
+
     Attributes
     ----------
     is_deleted : bool
@@ -58,17 +63,21 @@ class SoftDeleteModel(models.Model):
     """
 
     is_deleted: bool = models.BooleanField(default=False)
-    deleted_at: Optional[timezone.datetime] = models.DateTimeField(null=True, blank=True)
+    deleted_at: Optional[timezone.datetime] = models.DateTimeField(
+        null=True, blank=True
+    )
 
     # Manager for active (non-deleted) records
     active_objects: SoftDeleteManager = SoftDeleteManager()
     # Manager to access all records, including soft-deleted ones
     all_including_deleted_objects: models.Manager = models.Manager()
 
-    def delete(self, using: Optional[str] = None, keep_parents: bool = False) -> None:
+    def delete(
+        self, using: Optional[str] = None, keep_parents: bool = False
+    ) -> None:
         """
         Override the default delete method to implement soft delete.
-        
+
         Parameters
         ----------
         using : Optional[str], optional
@@ -89,13 +98,16 @@ class SoftDeleteModel(models.Model):
         self.save()
 
     class Meta:
-        abstract = True # This model will not be used to create any database table
+        abstract = (
+            True  # This model will not be used to create any database table
+        )
+
 
 # Example Concrete Model
 class MyModel(SoftDeleteModel):
     """
     Example model that inherits from SoftDeleteModel.
-    
+
     Attributes
     ----------
     name : str
@@ -110,7 +122,7 @@ class MyModel(SoftDeleteModel):
     def __str__(self) -> str:
         """
         Return the string representation of the model instance.
-        
+
         Returns
         -------
         str

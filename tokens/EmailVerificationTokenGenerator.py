@@ -1,10 +1,12 @@
 from django.core.signing import TimestampSigner, SignatureExpired, BadSignature
 from django.conf import settings
 
+
 class EmailVerificationTokenGenerator:
     """
     Class to generate and verify email verification tokens.
     """
+
     def __init__(self):
         self.secret_key = settings.SECRET_KEY
         self.signer = TimestampSigner(self.secret_key)
@@ -47,10 +49,11 @@ class EmailVerificationTokenGenerator:
             return int(user_id)
         except SignatureExpired:
             # Token is valid but expired
-            return 'expired'
+            return "expired"
         except BadSignature:
             # Token is invalid
-            return 'invalid'
+            return "invalid"
+
 
 # Create an instance of the EmailVerificationTokenGenerator
 email_verification_token = EmailVerificationTokenGenerator()
