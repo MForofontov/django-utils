@@ -49,5 +49,5 @@ class EmailVerificationTokenGeneratorItsDangerous:
             # Token is invalid
             return 'invalid'
 
-# Create an instance of the EmailVerificationTokenGenerator
-email_verification_token = EmailVerificationTokenGenerator()
+# Create an instance of the EmailVerificationTokenGeneratorItsDangerous
+email_verification_token = EmailVerificationTokenGeneratorItsDangerous()
