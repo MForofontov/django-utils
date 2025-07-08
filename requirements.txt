@@ -1,0 +1,9 @@
+Django
+djangorestframework
+djangorestframework-simplejwt
+itsdangerous
+requests
+qrcode
+user-agents
+cryptography
+pytz
